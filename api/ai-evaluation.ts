@@ -59,7 +59,7 @@ Tolong outputkan JSON dengan struktur persis seperti ini:
 `;
 
     const response = await ai.models.generateContent({
-      model: "gemini-1.5-flash",
+      model: "gemini-1.5-flash-latest",
       contents: prompt,
       config: {
         temperature: 0.2,
