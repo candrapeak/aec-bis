@@ -1,4 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
+import { getGeminiModelName } from "../lib/gemini-model";
 
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
@@ -60,7 +61,7 @@ Tolong outputkan JSON dengan struktur persis seperti ini:
 `;
 
  const response = await ai.models.generateContent({
-      model: "gemini-1.5-flash",
+      model: getGeminiModelName(),
       contents: prompt,
       config: {
         temperature: 0.2,
@@ -76,7 +77,7 @@ Tolong outputkan JSON dengan struktur persis seperti ini:
 
     return res.status(200).json({
       success: true,
-      source: "gemini-1.5-flash-latest",
+      source: getGeminiModelName(),
       ...parsedResult
     });
   } catch (error: any) {

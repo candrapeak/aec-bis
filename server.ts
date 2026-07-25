@@ -3,6 +3,7 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
+import { getGeminiModelName } from "./lib/gemini-model";
 
 dotenv.config();
 
@@ -109,7 +110,7 @@ Tolong outputkan JSON murni tanpa markdown formatting backticks dengan struktur 
 `;
 
     const response = await ai.models.generateContent({
-      model: "gemini-3.6-flash",
+      model: getGeminiModelName(),
       contents: prompt,
       config: {
         temperature: 0.2,
@@ -122,7 +123,7 @@ Tolong outputkan JSON murni tanpa markdown formatting backticks dengan struktur 
 
     return res.json({
       success: true,
-      source: "gemini-3.6-flash",
+      source: getGeminiModelName(),
       ...parsedResult
     });
   } catch (error: any) {
@@ -149,7 +150,7 @@ app.post("/api/ai-summary", async (req, res) => {
     const prompt = `Berikan rangkuman ringkas (maksimal 2 kalimat singkat, bernada profesional & optimis) mengenai kinerja iklan Meta Ads Arrohman English Center dengan data berikut: Spend: Rp ${summaryData?.totalSpend}, Revenue: Rp ${summaryData?.totalRevenue}, ROAS: ${summaryData?.roas}x, Leads: ${summaryData?.totalConversations}, Closing: ${summaryData?.totalClosings}. Bahasa Indonesia.`;
 
     const response = await ai.models.generateContent({
-      model: "gemini-3.6-flash",
+      model: getGeminiModelName(),
       contents: prompt,
       config: {
         temperature: 0.3

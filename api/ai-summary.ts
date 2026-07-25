@@ -1,4 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
+import { getGeminiModelName } from "../lib/gemini-model";
 
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
@@ -18,7 +19,7 @@ export default async function handler(req: any, res: any) {
     const prompt = `Berikan rangkuman ringkas (maksimal 2 kalimat singkat, bernada profesional & optimis) mengenai kinerja iklan Meta Ads Arrohman English Center dengan data berikut: Spend: Rp ${summaryData?.spend}, Revenue: Rp ${summaryData?.revenue}, ROAS: ${summaryData?.roas}x, Leads: ${summaryData?.conversations}, Closing: ${summaryData?.closings}. Bahasa Indonesia.`;
 
    const response = await ai.models.generateContent({
-      model: "gemini-1.5-flash",
+      model: getGeminiModelName(),
       contents: prompt,
       config: { temperature: 0.3 }
     });
