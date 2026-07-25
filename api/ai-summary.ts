@@ -7,6 +7,7 @@ export default async function handler(req: any, res: any) {
     const { summaryData } = req.body;
     const apiKey = process.env.GEMINI_API_KEY;
 
+    // Jika API Key tidak ada, gunakan teks simulasi
     if (!apiKey) {
       return res.status(200).json({
         summary: `Kampanye Meta Ads AEC mencatatkan ROAS sebesar ${summaryData?.roas || 0}x dengan total revenue Rp ${((summaryData?.revenue || 0)/1000000).toFixed(1)}Jt.`

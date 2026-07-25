@@ -7,6 +7,7 @@ export default async function handler(req: any, res: any) {
     const { summaryData, period } = req.body;
     const apiKey = process.env.GEMINI_API_KEY;
 
+    // Jika API Key tidak ada, gunakan teks simulasi
     if (!apiKey) {
       return res.status(200).json({
         success: true,
@@ -67,12 +68,15 @@ Tolong outputkan JSON dengan struktur persis seperti ini:
       }
     });
 
-    const resultText = response.text || "{}";
+    // Kode pembersih agar tidak error saat parsing JSON
+    let resultText = response.text || "{}";
+    resultText = resultText.replace(/```json\n?/g, '').replace(/```/g, '').trim();
+    
     const parsedResult = JSON.parse(resultText);
 
     return res.status(200).json({
       success: true,
-      source: "gemini-1.5-flash",
+      source: "gemini-1.5-flash-latest",
       ...parsedResult
     });
   } catch (error: any) {
