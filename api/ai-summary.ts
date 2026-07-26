@@ -3,6 +3,12 @@ import { getOpenAIApiKey, getOpenAIModelName } from "../lib/openai";
 import { buildSummaryPrompt } from "../lib/meta-ads-prompt";
 
 export default async function handler(req: any, res: any) {
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    return res.status(200).send('OK');
+  }
+
   if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
 
   try {
