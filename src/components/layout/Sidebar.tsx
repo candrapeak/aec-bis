@@ -37,7 +37,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     },
     {
       id: 'ai-evaluation' as ActiveTab,
-      label: 'AI Evaluation (Gemini)',
+      label: 'AI Evaluation (OpenAI)',
       icon: BrainCircuit,
       description: 'Analisis Strategi & Health Score',
       badge: 'AI',
@@ -128,7 +128,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             Meta Ads Intelligence
           </div>
           <p className="mt-1 text-[11px] text-gray-600 dark:text-gray-400 leading-relaxed">
-            Sistem terintegrasi formula otomatis & rekomendasi AI Gemini 3.6.
+            Sistem terintegrasi formula otomatis & rekomendasi AI OpenAI.
           </p>
         </div>
       )}

@@ -145,7 +145,7 @@ export const AiEvaluationView: React.FC<AiEvaluationViewProps> = ({ entries }) =
               AI Evaluation & Strategic Advisor
             </h2>
             <span className="rounded-full bg-indigo-100 px-2.5 py-0.5 text-[10px] font-extrabold text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
-              Gemini 3.6 Flash
+              OpenAI
             </span>
           </div>
           <p className="text-xs text-gray-500">
@@ -170,7 +170,7 @@ export const AiEvaluationView: React.FC<AiEvaluationViewProps> = ({ entries }) =
             <BrainCircuit className="h-8 w-8 text-indigo-600 animate-pulse" />
           </div>
           <h3 className="mt-4 text-base font-bold text-gray-900 dark:text-white">
-            Gemini Sedang Memproses Data
+            OpenAI Sedang Memproses Data
           </h3>
           <p className="mt-1 text-xs text-gray-500 max-w-md">
             Mengkalkulasi Marketing Health Score, mengevaluasi peringkat campaign & merumuskan strategi pemasaran...

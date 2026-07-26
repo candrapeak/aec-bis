@@ -1,9 +1,8 @@
 import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
-import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
-import { getGeminiModelName } from "./lib/gemini-model";
+import { getOpenAIApiKey, getOpenAIModelName } from "./lib/openai";
 
 dotenv.config();
 
@@ -12,21 +11,14 @@ const PORT = Number(process.env.PORT) || 3000;
 
 app.use(express.json({ limit: "10mb" }));
 
-// Initialize Google Gemini AI SDK on the server side
-const getGenAI = () => {
-  const apiKey = process.env.GEMINI_API_KEY;
+// Initialize OpenAI client on the server side
+const getOpenAIClient = () => {
+  const apiKey = getOpenAIApiKey();
   if (!apiKey) {
-    console.warn("GEMINI_API_KEY environment variable is not set. Using mock fallback mode for AI endpoints if required.");
+    console.warn("OPENAI_API_KEY environment variable is not set. Using mock fallback mode for AI endpoints if required.");
     return null;
   }
-  return new GoogleGenAI({
-    apiKey,
-    httpOptions: {
-      headers: {
-        "User-Agent": "aistudio-build",
-      },
-    },
-  });
+  return { apiKey };
 };
 
 // Health Check Route
@@ -34,14 +26,14 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok", app: "AEC-BIS", version: "1.0.0" });
 });
 
-// AI Evaluation Route using Gemini 3.6 Flash
+// AI Evaluation Route using OpenAI
 app.post("/api/ai-evaluation", async (req, res) => {
   try {
     const { summaryData, period } = req.body;
-    const ai = getGenAI();
+    const ai = getOpenAIClient();
 
     if (!ai) {
-      // Fallback rule-based response if GEMINI_API_KEY is not supplied
+      // Fallback rule-based response if OPENAI_API_KEY is not supplied
       return res.json({
         success: true,
         source: "rule-based-fallback",
@@ -109,21 +101,40 @@ Tolong outputkan JSON murni tanpa markdown formatting backticks dengan struktur 
 }
 `;
 
-    const response = await ai.models.generateContent({
-      model: getGeminiModelName(),
-      contents: prompt,
-      config: {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${ai.apiKey}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: getOpenAIModelName(),
         temperature: 0.2,
-        responseMimeType: "application/json"
-      }
+        response_format: { type: "json_object" },
+        messages: [
+          {
+            role: "system",
+            content: "You are a senior digital marketing consultant. Return only valid JSON."
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ]
+      })
     });
 
-    const resultText = response.text || "{}";
+    if (!response.ok) {
+      throw new Error(`OpenAI request failed: ${response.status}`);
+    }
+
+    const completion = await response.json();
+    const resultText = completion?.choices?.[0]?.message?.content || "{}";
     const parsedResult = JSON.parse(resultText);
 
     return res.json({
       success: true,
-      source: getGeminiModelName(),
+      source: getOpenAIModelName(),
       ...parsedResult
     });
   } catch (error: any) {
@@ -139,7 +150,7 @@ Tolong outputkan JSON murni tanpa markdown formatting backticks dengan struktur 
 app.post("/api/ai-summary", async (req, res) => {
   try {
     const { summaryData } = req.body;
-    const ai = getGenAI();
+    const ai = getOpenAIClient();
 
     if (!ai) {
       return res.json({
@@ -149,16 +160,36 @@ app.post("/api/ai-summary", async (req, res) => {
 
     const prompt = `Berikan rangkuman ringkas (maksimal 2 kalimat singkat, bernada profesional & optimis) mengenai kinerja iklan Meta Ads Arrohman English Center dengan data berikut: Spend: Rp ${summaryData?.totalSpend}, Revenue: Rp ${summaryData?.totalRevenue}, ROAS: ${summaryData?.roas}x, Leads: ${summaryData?.totalConversations}, Closing: ${summaryData?.totalClosings}. Bahasa Indonesia.`;
 
-    const response = await ai.models.generateContent({
-      model: getGeminiModelName(),
-      contents: prompt,
-      config: {
-        temperature: 0.3
-      }
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${ai.apiKey}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: getOpenAIModelName(),
+        temperature: 0.3,
+        messages: [
+          {
+            role: "system",
+            content: "You are a concise marketing assistant. Respond in Indonesian."
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ]
+      })
     });
 
+    if (!response.ok) {
+      throw new Error(`OpenAI request failed: ${response.status}`);
+    }
+
+    const completion = await response.json();
+
     return res.json({
-      summary: response.text?.trim() || "Performa iklan menunjukkan tren positif dengan rasio pengembalian modal iklan yang sangat baik."
+      summary: completion?.choices?.[0]?.message?.content?.trim() || "Performa iklan menunjukkan tren positif dengan rasio pengembalian modal iklan yang sangat baik."
     });
   } catch (error: any) {
     return res.json({
