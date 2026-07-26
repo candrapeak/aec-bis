@@ -1,6 +1,7 @@
 import { buildFallbackEvaluationResponse } from "../lib/ai-fallback";
 import { getOpenAIApiKey, getOpenAIModelName } from "../lib/openai";
 import { buildEvaluationPrompt } from "../lib/meta-ads-prompt";
+import callOpenAIChat from "../lib/openai-client";
 
 export default async function handler(req: any, res: any) {
   // Set CORS headers for all responses
@@ -24,38 +25,23 @@ export default async function handler(req: any, res: any) {
 
     const prompt = buildEvaluationPrompt(summaryData, period);
 
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: getOpenAIModelName(),
-        temperature: 0.2,
-        response_format: { type: "json_object" },
-        messages: [
-          {
-            role: "system",
-            content: "You are a senior digital marketing consultant. Return only valid JSON."
-          },
-          {
-            role: "user",
-            content: prompt
-          }
-        ]
-      })
-    });
+    const messages = [
+      { role: "system", content: "You are a senior digital marketing consultant. Return only valid JSON." },
+      { role: "user", content: prompt },
+    ];
 
-    if (!response.ok) {
-      throw new Error(`OpenAI request failed: ${response.status}`);
-    }
+    const completion = await callOpenAIChat(apiKey, getOpenAIModelName(), messages, { temperature: 0.2, maxRetries: 1, extra: { response_format: { type: "json_object" } } });
 
-    const completion = await response.json();
     const rawResultText = completion?.choices?.[0]?.message?.content || "{}";
     const resultText = rawResultText.replace(/```json\n?/g, '').replace(/```/g, '').trim();
-    
-    const parsedResult = JSON.parse(resultText);
+
+    let parsedResult;
+    try {
+      parsedResult = JSON.parse(resultText);
+    } catch (e) {
+      console.error('Failed to parse resultText from OpenAI:', { resultText, err: e });
+      throw e;
+    }
 
     res.setHeader('Access-Control-Allow-Origin', '*');
     return res.status(200).json({
