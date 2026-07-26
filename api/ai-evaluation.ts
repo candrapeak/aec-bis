@@ -3,9 +3,11 @@ import { getOpenAIApiKey, getOpenAIModelName } from "../lib/openai";
 import { buildEvaluationPrompt } from "../lib/meta-ads-prompt";
 
 export default async function handler(req: any, res: any) {
+  // Set CORS headers for all responses
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') {
-    res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
     return res.status(200).send('OK');
   }
 
@@ -55,6 +57,7 @@ export default async function handler(req: any, res: any) {
     
     const parsedResult = JSON.parse(resultText);
 
+    res.setHeader('Access-Control-Allow-Origin', '*');
     return res.status(200).json({
       success: true,
       source: getOpenAIModelName(),
@@ -62,6 +65,7 @@ export default async function handler(req: any, res: any) {
     });
   } catch (error: any) {
     console.error("AI Eval Error:", error);
+    res.setHeader('Access-Control-Allow-Origin', '*');
     return res.status(200).json(buildFallbackEvaluationResponse(req.body?.summaryData, req.body?.period));
   }
 }

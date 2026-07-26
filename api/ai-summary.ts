@@ -3,9 +3,11 @@ import { getOpenAIApiKey, getOpenAIModelName } from "../lib/openai";
 import { buildSummaryPrompt } from "../lib/meta-ads-prompt";
 
 export default async function handler(req: any, res: any) {
+  // Set CORS headers for all responses (allow frontend access)
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') {
-    res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
     return res.status(200).send('OK');
   }
 
@@ -50,11 +52,13 @@ export default async function handler(req: any, res: any) {
 
     const completion = await response.json();
 
+    res.setHeader('Access-Control-Allow-Origin', '*');
     return res.status(200).json({
       summary: completion?.choices?.[0]?.message?.content?.trim() || "Performa iklan menunjukkan tren positif dengan rasio pengembalian modal iklan yang sangat baik."
     });
   } catch (error) {
     console.error("AI Summary Error:", error);
+    res.setHeader('Access-Control-Allow-Origin', '*');
     return res.status(200).json(buildFallbackSummaryResponse(req.body?.summaryData));
   }
 }
