@@ -40,6 +40,10 @@ export default async function handler(req: any, res: any) {
   } catch (error) {
     console.error("AI Summary Error:", error);
     res.setHeader('Access-Control-Allow-Origin', '*');
-    return res.status(200).json(buildFallbackSummaryResponse(req.body?.summaryData));
+    return res.status(500).json({
+      error: 'OpenAI gagal merespons',
+      details: (error as any)?.message || String(error),
+      fallback: buildFallbackSummaryResponse(req.body?.summaryData),
+    });
   }
 }

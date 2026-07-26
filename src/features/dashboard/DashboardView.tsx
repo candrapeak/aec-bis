@@ -30,6 +30,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     setLoadingAi(true);
 
     try {
+      // add abort timeout to avoid waiting past Vercel function timeout
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 9000);
+
       const response = await fetch('/api/ai-summary', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -44,15 +48,55 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             cpm: metrics.cpm,
           },
         }),
+        signal: controller.signal,
       });
 
+      clearTimeout(timeout);
+
+      // Validate HTTP status and attempt to read structured error/fallback from JSON
+      if (!response.ok) {
+        const contentType = response.headers.get('content-type') || '';
+        const text = await response.text().catch(() => '');
+        console.error('AI summary fetch failed', { status: response.status, contentType, body: text });
+
+        if (contentType.includes('application/json')) {
+          try {
+            const parsedErr = JSON.parse(text);
+            if (parsedErr?.fallback?.summary) {
+              setAiSummary(parsedErr.fallback.summary);
+              return;
+            }
+            if (parsedErr?.error) {
+              setAiSummary('Ringkasan AI belum dapat dimuat: ' + parsedErr.error);
+              return;
+            }
+          } catch (e) {
+            // fallthrough to generic message
+          }
+        }
+
+        throw new Error(`AI summary API returned status ${response.status}`);
+      }
+
+      // Strict MIME check before parsing JSON
+      const contentType = response.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        const text = await response.text().catch(() => '');
+        console.error('AI summary returned non-JSON response', { contentType, body: text });
+        setAiSummary('Ringkasan AI belum dapat dimuat karena server mengembalikan respons tidak valid. Silakan coba lagi.');
+        return;
+      }
+
       const data = await response.json();
-      setAiSummary(
-        data?.summary || 'Belum ada data performa iklan yang cukup untuk dianalisis.'
-      );
+      setAiSummary(data?.summary || 'Belum ada data performa iklan yang cukup untuk dianalisis.');
     } catch (error) {
-      console.error('Gagal mengambil ringkasan AI:', error);
-      setAiSummary('Ringkasan AI tidak tersedia saat ini, tetapi performa iklan tetap dapat dipantau dari KPI utama.');
+      if ((error as any)?.name === 'AbortError') {
+        console.error('AI summary fetch aborted (timeout)');
+        setAiSummary('Ringkasan AI belum dapat dimuat karena waktu tunggu server habis. Silakan muat ulang.');
+      } else {
+        console.error('Gagal mengambil ringkasan AI:', error);
+        setAiSummary('Ringkasan AI tidak tersedia saat ini, tetapi performa iklan tetap dapat dipantau dari KPI utama.');
+      }
     } finally {
       setLoadingAi(false);
     }

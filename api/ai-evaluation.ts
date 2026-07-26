@@ -52,6 +52,10 @@ export default async function handler(req: any, res: any) {
   } catch (error: any) {
     console.error("AI Eval Error:", error);
     res.setHeader('Access-Control-Allow-Origin', '*');
-    return res.status(200).json(buildFallbackEvaluationResponse(req.body?.summaryData, req.body?.period));
+    return res.status(500).json({
+      error: 'OpenAI gagal merespons',
+      details: error?.message || String(error),
+      fallback: buildFallbackEvaluationResponse(req.body?.summaryData, req.body?.period),
+    });
   }
 }
