@@ -12,7 +12,9 @@ export default async function handler(req: any, res: any) {
     return res.status(200).send('OK');
   }
 
-  if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
+  if (req.method !== 'POST') {
+    return res.status(405).json({ success: false, error: 'Method Not Allowed' });
+  }
 
   try {
     const { summaryData, period } = req.body;

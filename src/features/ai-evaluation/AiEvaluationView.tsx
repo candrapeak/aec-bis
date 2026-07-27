@@ -107,10 +107,18 @@ export const AiEvaluationView: React.FC<AiEvaluationViewProps> = ({ entries }) =
         }),
       });
 
-      const data = await response.json();
+      const text = await response.text();
+      let data: any = null;
+      if (text) {
+        try {
+          data = JSON.parse(text);
+        } catch (parseError) {
+          throw new Error(`AI evaluation returned invalid JSON: ${parseError}`);
+        }
+      }
 
       if (!response.ok || !data?.success) {
-        throw new Error(data?.error || 'AI evaluation failed');
+        throw new Error(data?.error || `AI evaluation failed (${response.status})`);
       }
 
       setEvaluation({
