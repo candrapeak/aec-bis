@@ -1,7 +1,7 @@
-import { buildFallbackSummaryResponse } from "../lib/ai-fallback";
-import { getOpenAIApiKey, getOpenAIModelName } from "../lib/openai";
-import { buildSummaryPrompt } from "../lib/meta-ads-prompt";
-import callOpenAIChat from "../lib/openai-client";
+import { buildFallbackSummaryResponse } from "../lib/ai-fallback.js";
+import { getOpenAIApiKey, getOpenAIModelName } from "../lib/openai.js";
+import { buildSummaryPrompt } from "../lib/meta-ads-prompt.js";
+import callOpenAIChat from "../lib/openai-client.js";
 
 export default async function handler(req: any, res: any) {
   // Set CORS headers for all responses (allow frontend access)
