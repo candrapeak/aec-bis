@@ -39,9 +39,9 @@ export const LoginPage: React.FC = () => {
             <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-blue-600 text-white shadow-lg">
               <ShieldCheck className="h-8 w-8" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">AEC-BIS Login</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Business Intelligence System</h1>
             <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-              Masuk untuk mengakses dasbor intelijen bisnis Arrohman English Center
+              Masuk untuk mengakses dasbor Business Intelligence System
             </p>
           </div>
 
@@ -62,7 +62,7 @@ export const LoginPage: React.FC = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full rounded-xl border border-gray-300 bg-transparent px-4 py-3 text-sm outline-none transition-all focus:border-blue-600 focus:ring-1 focus:ring-blue-600 dark:border-gray-700 dark:text-white dark:focus:border-blue-500"
-                placeholder="admin@arrohman.com"
+                placeholder="userlogin"
               />
             </div>
 

@@ -6,6 +6,7 @@ import {
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from 'recharts';
 import { AdDailyEntry } from '../../types';
 import { calculateMetrics, formatCurrencyIDR, formatNumber } from '../../utils/formulas';
+import { buildPrintableReportHtml, buildReportCsv } from '../../utils/export';
 
 interface ReportsViewProps {
   entries: AdDailyEntry[];
@@ -51,6 +52,61 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ entries }) => {
   const totalMetrics = useMemo(() => calculateMetrics(entries), [entries]);
 
   const triggerExport = (format: 'PDF' | 'Excel') => {
+    if (format === 'Excel') {
+      const csv = buildReportCsv(aggregatedReport as any, `Rekap ${reportType}`);
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `aec-rekap-${reportType}.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } else {
+      const tableRows = aggregatedReport
+        .map((row) => `
+          <tr>
+            <td>${row.period}</td>
+            <td>${row.count}</td>
+            <td>${formatCurrencyIDR(row.spend)}</td>
+            <td>${formatNumber(row.impression)}</td>
+            <td>${row.ctr.toFixed(2)}%</td>
+            <td>${row.conversations}</td>
+            <td>${row.closings}</td>
+            <td>${formatCurrencyIDR(row.revenue)}</td>
+            <td>${row.roas.toFixed(2)}x</td>
+            <td>${formatCurrencyIDR(row.costPerClosing)}</td>
+          </tr>`)
+        .join('');
+
+      const tableHtml = `
+        <table>
+          <thead>
+            <tr>
+              <th>Periode</th>
+              <th>Jml Hari/Data</th>
+              <th>Total Spend</th>
+              <th>Total Impresi</th>
+              <th>CTR / CPC</th>
+              <th>Leads</th>
+              <th>Closing</th>
+              <th>Revenue</th>
+              <th>ROAS</th>
+              <th>CPA</th>
+            </tr>
+          </thead>
+          <tbody>${tableRows}</tbody>
+        </table>`;
+
+      const html = buildPrintableReportHtml(`Laporan Rekap ${reportType.toUpperCase()}`, tableHtml);
+      const printWindow = window.open('', '_blank', 'width=900,height=700');
+      if (printWindow) {
+        printWindow.document.write(html);
+        printWindow.document.close();
+        printWindow.focus();
+        setTimeout(() => printWindow.print(), 300);
+      }
+    }
+
     setExportNotice(`Laporan Rekap Pemasaran AEC (${reportType.toUpperCase()}) berhasil disiapkan & diunduh sebagai format ${format}.`);
     setTimeout(() => setExportNotice(null), 4000);
   };
