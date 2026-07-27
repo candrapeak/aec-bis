@@ -27,8 +27,8 @@ export default async function handler(req: any, res: any) {
 
     const prompt = buildEvaluationPrompt(summaryData, period);
 
-    const messages = [
-      { role: "system", content: "You are a senior digital marketing consultant. Return only valid JSON." },
+   const messages = [
+      { role: "system", content: "You are a senior digital marketing consultant. Return only valid JSON. You MUST write all evaluations, recommendations, strengths, and risks in Indonesian (Bahasa Indonesia)." },
       { role: "user", content: prompt },
     ];
 
